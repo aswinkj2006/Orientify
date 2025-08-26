@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Orientation App - Hackathon</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Alarm Clock Component (Portrait Upright) -->
+        <div id="alarm-clock" class="component alarm-clock hidden">
+            <div class="glass-card">
+                <div class="component-header">
+                    <h1 class="component-title">Alarm Clock</h1>
+                    <div class="orientation-indicator">📱</div>
+                </div>
+                <div class="time-display">
+                    <div id="current-time" class="current-time">00:00:00</div>
+                    <div id="current-date" class="current-date">Monday, January 1</div>
+                </div>
+                <div class="alarm-controls">
+                    <div class="glass-button-group">
+                        <button id="set-alarm-btn" class="glass-button primary">Set Alarm</button>
+                        <button id="clear-alarm-btn" class="glass-button secondary">Clear</button>
+                    </div>
+                    <div id="alarm-time-display" class="alarm-time hidden">
+                        <span>Alarm set for: </span>
+                        <span id="alarm-time">--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stopwatch Component (Landscape Right) -->
+        <div id="stopwatch" class="component stopwatch hidden">
+            <div class="glass-card landscape">
+                <div class="component-header">
+                    <h1 class="component-title">Stopwatch</h1>
+                    <div class="orientation-indicator">📱↻</div>
+                </div>
+                <div class="stopwatch-display">
+                    <div id="stopwatch-time" class="stopwatch-time">00:00.00</div>
+                    <div id="lap-times" class="lap-times"></div>
+                </div>
+                <div class="stopwatch-controls">
+                    <div class="glass-button-group">
+                        <button id="start-stop-btn" class="glass-button primary">Start</button>
+                        <button id="lap-reset-btn" class="glass-button secondary">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timer Component (Portrait Upside Down) -->
+        <div id="timer" class="component timer hidden">
+            <div class="glass-card upside-down">
+                <div class="component-header">
+                    <h1 class="component-title">Timer</h1>
+                    <div class="orientation-indicator">📱↓</div>
+                </div>
+                <div class="timer-display">
+                    <div id="timer-time" class="timer-time">05:00</div>
+                    <div class="timer-input">
+                        <input type="number" id="timer-minutes" min="0" max="59" value="5" class="glass-input">
+                        <span>:</span>
+                        <input type="number" id="timer-seconds" min="0" max="59" value="0" class="glass-input">
+                    </div>
+                </div>
+                <div class="timer-controls">
+                    <div class="glass-button-group">
+                        <button id="start-timer-btn" class="glass-button primary">Start</button>
+                        <button id="reset-timer-btn" class="glass-button secondary">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Component (Landscape Left) -->
+        <div id="weather" class="component weather hidden">
+            <div class="glass-card landscape">
+                <div class="component-header">
+                    <h1 class="component-title">Weather</h1>
+                    <div class="orientation-indicator">📱↺</div>
+                </div>
+                <div class="weather-display">
+                    <div id="weather-loading" class="loading">Getting your location...</div>
+                    <div id="weather-content" class="weather-content hidden">
+                        <div class="weather-main">
+                            <div id="weather-icon" class="weather-icon">☀️</div>
+                            <div id="weather-temp" class="weather-temp">--°</div>
+                        </div>
+                        <div class="weather-details">
+                            <div id="weather-description" class="weather-description">--</div>
+                            <div id="weather-location" class="weather-location">--</div>
+                            <div class="weather-stats">
+                                <div class="weather-stat">
+                                    <span class="stat-label">Feels like</span>
+                                    <span id="feels-like" class="stat-value">--°</span>
+                                </div>
+                                <div class="weather-stat">
+                                    <span class="stat-label">Humidity</span>
+                                    <span id="humidity" class="stat-value">--%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orientation Debug Info (Development only) -->
+        <div id="debug-info" class="debug-info">
+            <div>Orientation: <span id="debug-orientation">--</span></div>
+            <div>Angle: <span id="debug-angle">--</span></div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

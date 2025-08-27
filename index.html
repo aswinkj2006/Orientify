@@ -3,33 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Orientation App - Hackathon</title>
+    <title>Orientify - Smart Orientation Platform</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="alarm-styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- App Logo Header -->
+    <div id="app-header" class="app-header">
+        <h1 class="app-logo">Orientify</h1>
+        <p class="app-tagline">Smart Orientation Platform</p>
+    </div>
+    
     <div id="app" class="app-container">
         <!-- Alarm Clock Component (Portrait Upright) -->
-        <div id="alarm-clock" class="component alarm-clock hidden">
+        <div id="alarm-clock" class="component alarm-clock active">
             <div class="glass-card">
                 <div class="component-header">
-                    <h1 class="component-title">Alarm Clock</h1>
+                    <h1 class="component-title">Alarm</h1>
                     <div class="orientation-indicator">📱</div>
                 </div>
+                
                 <div class="time-display">
                     <div id="current-time" class="current-time">00:00:00</div>
                     <div id="current-date" class="current-date">Monday, January 1</div>
                 </div>
+                <div class="alarm-display">
+                    <div id="alarm-list" class="alarm-list"></div>
+                </div>
                 <div class="alarm-controls">
                     <div class="glass-button-group">
-                        <button id="set-alarm-btn" class="glass-button primary">Set Alarm</button>
-                        <button id="clear-alarm-btn" class="glass-button secondary">Clear</button>
-                    </div>
-                    <div id="alarm-time-display" class="alarm-time hidden">
-                        <span>Alarm set for: </span>
-                        <span id="alarm-time">--:--</span>
+                        <button id="add-alarm-btn" class="glass-button primary">
+                            <span class="button-icon">+</span>
+                            <span>Add Alarm</span>
+                        </button>
+                        <button id="clear-all-alarms-btn" class="glass-button secondary">
+                            <span class="button-icon">🗑️</span>
+                            <span>Clear All</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -44,12 +58,28 @@
                 </div>
                 <div class="stopwatch-display">
                     <div id="stopwatch-time" class="stopwatch-time">00:00.00</div>
+                    <div class="stopwatch-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Laps</span>
+                            <span id="lap-count" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Best</span>
+                            <span id="best-lap" class="stat-value">--:--</span>
+                        </div>
+                    </div>
                     <div id="lap-times" class="lap-times"></div>
                 </div>
                 <div class="stopwatch-controls">
                     <div class="glass-button-group">
-                        <button id="start-stop-btn" class="glass-button primary">Start</button>
-                        <button id="lap-reset-btn" class="glass-button secondary">Reset</button>
+                        <button id="start-stop-btn" class="glass-button primary">
+                            <span class="button-icon">▶️</span>
+                            <span>Start</span>
+                        </button>
+                        <button id="lap-reset-btn" class="glass-button secondary">
+                            <span class="button-icon">⏹️</span>
+                            <span>Reset</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -62,18 +92,21 @@
                     <h1 class="component-title">Timer</h1>
                     <div class="orientation-indicator">📱↓</div>
                 </div>
-                <div class="timer-display">
-                    <div id="timer-time" class="timer-time">05:00</div>
-                    <div class="timer-input">
-                        <input type="number" id="timer-minutes" min="0" max="59" value="5" class="glass-input">
-                        <span>:</span>
-                        <input type="number" id="timer-seconds" min="0" max="59" value="0" class="glass-input">
-                    </div>
+                
+                <div class="timer-list-container">
+                    <div id="timer-list" class="timer-list"></div>
                 </div>
+                
                 <div class="timer-controls">
                     <div class="glass-button-group">
-                        <button id="start-timer-btn" class="glass-button primary">Start</button>
-                        <button id="reset-timer-btn" class="glass-button secondary">Reset</button>
+                        <button id="add-timer-btn" class="glass-button primary">
+                            <span class="button-icon">+</span>
+                            <span>Add Timer</span>
+                        </button>
+                        <button id="clear-all-timers-btn" class="glass-button secondary">
+                            <span class="button-icon">🗑️</span>
+                            <span>Clear All</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -84,29 +117,27 @@
             <div class="glass-card landscape">
                 <div class="component-header">
                     <h1 class="component-title">Weather</h1>
+                    <div class="weather-unit-toggle">
+                        <button id="celsius-btn" class="unit-btn active">°C</button>
+                        <button id="fahrenheit-btn" class="unit-btn">°F</button>
+                    </div>
                     <div class="orientation-indicator">📱↺</div>
                 </div>
-                <div class="weather-display">
-                    <div id="weather-loading" class="loading">Getting your location...</div>
-                    <div id="weather-content" class="weather-content hidden">
-                        <div class="weather-main">
-                            <div id="weather-icon" class="weather-icon">☀️</div>
-                            <div id="weather-temp" class="weather-temp">--°</div>
-                        </div>
-                        <div class="weather-details">
-                            <div id="weather-description" class="weather-description">--</div>
-                            <div id="weather-location" class="weather-location">--</div>
-                            <div class="weather-stats">
-                                <div class="weather-stat">
-                                    <span class="stat-label">Feels like</span>
-                                    <span id="feels-like" class="stat-value">--°</span>
-                                </div>
-                                <div class="weather-stat">
-                                    <span class="stat-label">Humidity</span>
-                                    <span id="humidity" class="stat-value">--%</span>
-                                </div>
-                            </div>
-                        </div>
+                
+                <div class="weather-locations-container">
+                    <div id="weather-locations" class="weather-locations"></div>
+                </div>
+                
+                <div class="weather-controls">
+                    <div class="glass-button-group">
+                        <button id="add-location-btn" class="glass-button primary">
+                            <span class="button-icon">+</span>
+                            <span>Add Location</span>
+                        </button>
+                        <button id="current-location-btn" class="glass-button secondary">
+                            <span class="button-icon">📍</span>
+                            <span>Current Location</span>
+                        </button>
                     </div>
                 </div>
             </div>

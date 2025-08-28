@@ -77,19 +77,35 @@ class OrientifyApp {
     }
 
     setupOrientationDetection() {
-        // Screen orientation API
+        // Screen orientation API (most reliable for modern devices)
         if (screen.orientation) {
             screen.orientation.addEventListener('change', () => {
+                console.log('Screen orientation changed');
+                setTimeout(() => this.handleOrientationChange(), 150);
+            });
+        }
+        
+        // Orientation change event (iOS Safari and older browsers)
+        window.addEventListener('orientationchange', () => {
+            console.log('Window orientation changed');
+            setTimeout(() => this.handleOrientationChange(), 150);
+        });
+        
+        // Resize event as additional trigger (for when orientation APIs fail)
+        window.addEventListener('resize', () => {
+            console.log('Window resized');
+            setTimeout(() => this.handleOrientationChange(), 100);
+        });
+        
+        // Visual viewport API for better mobile detection
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                console.log('Visual viewport changed');
                 setTimeout(() => this.handleOrientationChange(), 100);
             });
         }
         
-        // Fallback for older browsers
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => this.handleOrientationChange(), 100);
-        });
-        
-        // Device orientation API for more precise detection
+        // Device orientation API for debugging
         if (window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', (event) => {
                 this.handleDeviceOrientation(event);
@@ -120,21 +136,38 @@ class OrientifyApp {
     }
 
     getOrientation() {
+        // Use Screen Orientation API first (most reliable)
+        if (screen.orientation) {
+            const type = screen.orientation.type;
+            console.log('Screen orientation type:', type);
+            
+            if (type.includes('portrait-primary')) return 'portrait-primary';
+            if (type.includes('landscape-primary')) return 'landscape-primary';
+            if (type.includes('portrait-secondary')) return 'portrait-secondary';
+            if (type.includes('landscape-secondary')) return 'landscape-secondary';
+            if (type.includes('portrait')) return 'portrait-primary';
+            if (type.includes('landscape')) return 'landscape-primary';
+        }
+        
+        // Fallback to orientation angle
         const angle = screen.orientation ? screen.orientation.angle : window.orientation;
+        console.log('Orientation angle:', angle);
         
         switch (angle) {
             case 0:
-                return 'portrait-primary'; // Normal portrait
+                return 'portrait-primary';
             case 90:
-                return 'landscape-primary'; // Rotated left (landscape)
+                return 'landscape-primary';
             case 180:
-                return 'portrait-secondary'; // Upside down
+                return 'portrait-secondary';
             case -90:
             case 270:
-                return 'landscape-secondary'; // Rotated right (landscape)
+                return 'landscape-secondary';
             default:
-                // Fallback based on window dimensions
-                return window.innerHeight > window.innerWidth ? 'portrait-primary' : 'landscape-primary';
+                // Final fallback - use actual device orientation detection
+                const isPortrait = window.innerHeight > window.innerWidth;
+                console.log('Fallback orientation - isPortrait:', isPortrait);
+                return isPortrait ? 'portrait-primary' : 'landscape-primary';
         }
     }
 
@@ -740,11 +773,6 @@ class OrientifyApp {
         this.renderTimers();
     }
 
-    formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
 
     formatTimerTime(seconds) {
         const minutes = Math.floor(seconds / 60);
@@ -832,7 +860,7 @@ class OrientifyApp {
     getCurrentLocationWeather() {
         if (!navigator.geolocation) {
             alert('Geolocation is not supported by this browser.');
-            this.addMockWeatherLocation('Current Location');
+            this.addMockCurrentLocation();
             return;
         }
 
@@ -860,7 +888,7 @@ class OrientifyApp {
                                 break;
                         }
                         alert(errorMsg);
-                        this.addMockWeatherLocation('Current Location');
+                        this.addMockCurrentLocation();
                     },
                     {
                         enableHighAccuracy: true,
@@ -870,7 +898,7 @@ class OrientifyApp {
                 );
             } else {
                 alert('Location permission denied. Using mock data.');
-                this.addMockWeatherLocation('Current Location');
+                this.addMockCurrentLocation();
             }
         }).catch(() => {
             // Fallback for browsers without permissions API
@@ -882,14 +910,14 @@ class OrientifyApp {
                 },
                 (error) => {
                     console.error('Geolocation error:', error);
-                    this.addMockWeatherLocation('Current Location');
+                    this.addMockCurrentLocation();
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
             );
         });
     }
 
-    async fetchWeatherByCoords(lat, lon) {
+    async fetchWeatherByCoords(lat, lon, locationName = 'Current Location') {
         try {
             if (!window.AppConfig || !window.AppConfig.hasWeatherApiKey()) {
                 console.warn('Weather API not configured');
@@ -903,9 +931,27 @@ class OrientifyApp {
                 throw new Error(`Weather API error: ${response.status}`);
             }
             
-            return await response.json();
+            const weatherData = await response.json();
+            
+            // Add to weather locations if successful
+            const locationData = {
+                id: 'current',
+                name: locationName,
+                country: weatherData.sys?.country || 'XX',
+                weather: weatherData,
+                isCurrentLocation: true
+            };
+            
+            // Remove existing current location and add new one
+            this.weatherLocations = this.weatherLocations.filter(loc => !loc.isCurrentLocation);
+            this.weatherLocations.unshift(locationData);
+            this.renderWeatherLocations();
+            this.saveData();
+            
+            return weatherData;
         } catch (error) {
             console.warn('Weather fetch failed:', error);
+            this.addMockCurrentLocation();
             return null;
         }
     }

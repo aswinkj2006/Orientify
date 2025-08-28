@@ -62,6 +62,7 @@ class OrientifyApp {
         this.setupOrientationDetection();
         this.startAlarmChecker();
         this.startClock();
+        this.startTimeUpdates(); // Add this line to start timer updates
         
         // Setup components after DOM is ready
         setTimeout(() => {
@@ -588,14 +589,18 @@ class OrientifyApp {
             day: 'numeric'
         });
         
-        document.getElementById('current-time').textContent = timeString;
-        document.getElementById('current-date').textContent = dateString;
+        const currentTimeElement = document.getElementById('current-time');
+        const currentDateElement = document.getElementById('current-date');
+        
+        if (currentTimeElement) currentTimeElement.textContent = timeString;
+        if (currentDateElement) currentDateElement.textContent = dateString;
         
         // Check alarms
         this.checkAlarms();
         
         // Update running timers
         this.updateRunningTimers();
+        this.renderTimers(); // Add this line to refresh timer display
     }
 
     startTimeUpdates() {
@@ -710,8 +715,17 @@ class OrientifyApp {
     }
 
     addTimer() {
-        const minutes = parseInt(prompt('Timer minutes:', '5')) || 5;
-        const seconds = parseInt(prompt('Timer seconds:', '0')) || 0;
+        const minutesInput = prompt('Timer minutes:', '0');
+        const minutes = minutesInput === null ? 0 : parseInt(minutesInput) || 0;
+        
+        const secondsInput = prompt('Timer seconds:', '0');
+        const seconds = secondsInput === null ? 0 : parseInt(secondsInput) || 0;
+        
+        // Check if at least one value is greater than 0
+        if (minutes === 0 && seconds === 0) {
+            alert('Please enter a value greater than 0 for minutes or seconds');
+            return;
+        }
         
         const timer = {
             id: Date.now(),
@@ -836,24 +850,32 @@ class OrientifyApp {
     }
 
     async addWeatherLocation() {
-        const location = prompt('Enter city name:', 'New York');
+        const location = prompt('Enter city name or location:', 'New York');
         if (!location) return;
 
         try {
             const weatherData = await this.fetchWeatherByCity(location);
-            const locationData = {
-                id: Date.now(),
-                name: weatherData.name,
-                country: weatherData.sys.country,
-                weather: weatherData,
-                isCurrentLocation: false
-            };
+            if (weatherData) {
+                const locationData = {
+                    id: Date.now(),
+                    name: weatherData.name,
+                    country: weatherData.sys.country,
+                    weather: weatherData,
+                    isCurrentLocation: false
+                };
 
-            this.weatherLocations.push(locationData);
-            this.renderWeatherLocations();
-            this.saveData();
+                // Remove any existing location with the same name
+                this.weatherLocations = this.weatherLocations.filter(
+                    loc => loc.name !== weatherData.name || loc.isCurrentLocation
+                );
+
+                this.weatherLocations.push(locationData);
+                this.renderWeatherLocations();
+                this.saveData();
+            }
         } catch (error) {
-            alert('Could not find weather for that location');
+            console.error('Error adding location:', error);
+            // Error alert is already handled in fetchWeatherByCity
         }
     }
 
@@ -919,16 +941,18 @@ class OrientifyApp {
 
     async fetchWeatherByCoords(lat, lon, locationName = 'Current Location') {
         try {
-            if (!window.AppConfig || !window.AppConfig.hasWeatherApiKey()) {
-                console.warn('Weather API not configured');
-                return null;
-            }
+            const apiKey = '1859d9d3597b44a30191dd8666d8982d'; // OpenWeatherMap API key
+            const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apiKey}`;
             
-            const weatherUrl = window.AppConfig.getWeatherApiUrl(lat, lon);
+            console.log('Fetching weather for coordinates:', { lat, lon });
             const response = await fetch(weatherUrl);
             
             if (!response.ok) {
-                throw new Error(`Weather API error: ${response.status}`);
+                if (response.status === 401) {
+                    throw new Error('Weather API authentication failed. Please check the API key.');
+                } else {
+                    throw new Error(`Weather API error: ${response.status}`);
+                }
             }
             
             const weatherData = await response.json();
@@ -958,27 +982,25 @@ class OrientifyApp {
 
     async fetchWeatherByCity(city) {
         try {
-            if (!window.AppConfig || !window.AppConfig.hasWeatherApiKey()) {
-                console.warn('Weather API not configured');
-                return null;
-            }
+            const apiKey = 'cdfcc63f0d1a401e9fe131114252808'; // WeatherAPI.com key
+            const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(city)}&aqi=no`;
             
-            const apiKey = window.AppConfig.get('WEATHER_API_KEY');
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+            console.log('Fetching weather for city:', city);
             const response = await fetch(url);
-        
+            
             if (!response.ok) {
-                throw new Error(`Weather API error: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || `Weather API error: ${response.status}`);
             }
             
-            return await response.json();
+            const data = await response.json();
+            return this.formatWeatherData(data);
         } catch (error) {
             console.warn('Weather fetch failed:', error);
+            alert(error.message || 'Could not fetch weather data. Please try again later.');
             return null;
         }
-    }
-
-    addMockCurrentLocation() {
+    }    addMockCurrentLocation() {
         const mockLocation = {
             id: 'current',
             name: 'Your Location',
@@ -1065,17 +1087,43 @@ class OrientifyApp {
 
     getWeatherIcon(condition) {
         const icons = {
-            'Clear': '☀️',
-            'Clouds': '☁️',
-            'Rain': '🌧️',
-            'Drizzle': '🌦️',
-            'Thunderstorm': '⛈️',
-            'Snow': '❄️',
+            'Sunny': '☀️',
+            'Clear': '🌙',
+            'Partly cloudy': '⛅',
+            'Cloudy': '☁️',
+            'Overcast': '☁️',
             'Mist': '🌫️',
-            'Fog': '🌫️'
+            'Fog': '🌫️',
+            'Light rain': '�️',
+            'Moderate rain': '🌧️',
+            'Heavy rain': '�️',
+            'Light snow': '🌨️',
+            'Moderate snow': '❄️',
+            'Heavy snow': '❄️',
+            'Thunder': '⛈️',
+            'Thunderstorm': '⛈️'
         };
         
         return icons[condition] || '🌤️';
+    }
+    
+    // Format weather data from WeatherAPI.com to match our app's format
+    formatWeatherData(data) {
+        return {
+            name: data.location.name,
+            sys: {
+                country: data.location.country
+            },
+            main: {
+                temp: data.current.temp_c,
+                feels_like: data.current.feelslike_c,
+                humidity: data.current.humidity
+            },
+            weather: [{
+                main: data.current.condition.text,
+                description: data.current.condition.text.toLowerCase()
+            }]
+        };
     }
 
     // Data persistence

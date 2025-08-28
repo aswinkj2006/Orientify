@@ -46,8 +46,6 @@ body:has(.component.weather.active) {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    gap: 1.5rem;
 }
 
 /* ===== DESKTOP OVERRIDE (when width > height in portrait orientation) ===== */
@@ -57,8 +55,6 @@ body:has(.component.weather.active) {
         flex-direction: row;
         align-items: center;
         justify-content: center;
-        padding: 2rem;
-        gap: 2rem;
     }
 }
 
@@ -70,6 +66,7 @@ body:has(.component.weather.active) {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     padding: 1.5rem;
+    margin-top: 100px;
     box-shadow: 
         0 8px 32px rgba(0, 0, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -93,7 +90,8 @@ body:has(.component.weather.active) .app-header {
     width: 280px;
     height: fit-content;
     flex-shrink: 0;
-    text-align: left;
+    text-align: center;
+    margin-left:50px;
 }
 
 .app-header::before {

@@ -7,9 +7,9 @@
     box-sizing: border-box;
 }
 
-html, body {
-    height: 100vh;
-    width: 100vw;
+html {
+    height: 100%;
+    width: 100%;
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -17,8 +17,14 @@ html, body {
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
-    overflow: hidden;
-    position: fixed;
+}
+
+body {
+    min-height: 100%;
+    width: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* ===== MAIN LAYOUT SYSTEM ===== */
